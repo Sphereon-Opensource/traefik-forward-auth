@@ -8,7 +8,7 @@ import (
 	"net/url"
 )
 
-// Google provider
+// WSO2 provider
 type Google struct {
 	ClientID     string `long:"client-id" env:"CLIENT_ID" description:"Client ID"`
 	ClientSecret string `long:"client-secret" env:"CLIENT_SECRET" description:"Client Secret" json:"-"`
@@ -112,4 +112,8 @@ func (g *Google) GetUser(token string) (User, error) {
 	err = json.NewDecoder(res.Body).Decode(&user)
 
 	return user, err
+}
+
+func (g *Google) IsCallbackSupported() bool {
+	return true
 }

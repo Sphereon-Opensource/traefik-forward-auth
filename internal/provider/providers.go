@@ -10,6 +10,7 @@ import (
 // Providers contains all the implemented providers
 type Providers struct {
 	Google       Google       `group:"Google Provider" namespace:"google" env-namespace:"GOOGLE"`
+	WSO2         WSO2         `group:"WSO2 Provider" namespace:"wso2" env-namespace:"WSO2"`
 	OIDC         OIDC         `group:"OIDC Provider" namespace:"oidc" env-namespace:"OIDC"`
 	GenericOAuth GenericOAuth `group:"Generic OAuth2 Provider" namespace:"generic-oauth" env-namespace:"GENERIC_OAUTH"`
 }
@@ -21,6 +22,7 @@ type Provider interface {
 	ExchangeCode(redirectURI, code string) (string, error)
 	GetUser(token string) (User, error)
 	Setup() error
+	IsCallbackSupported() bool
 }
 
 type token struct {

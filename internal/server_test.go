@@ -39,7 +39,7 @@ func TestServerRootHandler(t *testing.T) {
 	req := httptest.NewRequest("POST", "http://should-use-x-forwarded.com/should?ignore=me", nil)
 	req.Header.Add("X-Forwarded-Method", "GET")
 	req.Header.Add("X-Forwarded-Proto", "https")
-	req.Header.Add("X-Forwarded-Host", "example.com")
+	req.Header.Add("X-Forwarded-TokenHost", "example.com")
 	req.Header.Add("X-Forwarded-Uri", "/foo?q=bar")
 	NewServer().RootHandler(httptest.NewRecorder(), req)
 
@@ -53,7 +53,7 @@ func TestServerRootHandler(t *testing.T) {
 	req = httptest.NewRequest("POST", "http://should-use-x-forwarded.com/should-not?ignore=me", nil)
 	req.Header.Add("X-Forwarded-Method", "GET")
 	req.Header.Add("X-Forwarded-Proto", "https")
-	req.Header.Add("X-Forwarded-Host", "example.com")
+	req.Header.Add("X-Forwarded-TokenHost", "example.com")
 	NewServer().RootHandler(httptest.NewRecorder(), req)
 
 	assert.Equal("GET", req.Method, "x-forwarded-method should be read into request")
@@ -384,7 +384,7 @@ func TestServerRouteHost(t *testing.T) {
 	config.Rules = map[string]*Rule{
 		"1": {
 			Action: "allow",
-			Rule:   "Host(`api.example.com`)",
+			Rule:   "TokenHost(`api.example.com`)",
 		},
 		"2": {
 			Action: "allow",
@@ -574,7 +574,7 @@ func newHTTPRequest(method, target string) *http.Request {
 	r := httptest.NewRequest(method, target, nil)
 	r.Header.Add("X-Forwarded-Method", method)
 	r.Header.Add("X-Forwarded-Proto", u.Scheme)
-	r.Header.Add("X-Forwarded-Host", u.Host)
+	r.Header.Add("X-Forwarded-TokenHost", u.Host)
 	r.Header.Add("X-Forwarded-Uri", u.RequestURI())
 	return r
 }

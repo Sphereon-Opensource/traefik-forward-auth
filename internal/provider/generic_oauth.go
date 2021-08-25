@@ -94,3 +94,7 @@ func (o *GenericOAuth) GetUser(token string) (User, error) {
 
 	return user, err
 }
+
+func (o *GenericOAuth) IsCallbackSupported() bool {
+	return true
+}

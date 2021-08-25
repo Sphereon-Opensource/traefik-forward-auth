@@ -51,7 +51,7 @@ func TestConfigParseArgs(t *testing.T) {
 		"--rule.1.action=allow",
 		"--rule.1.rule=PathPrefix(`/one`)",
 		"--rule.two.action=auth",
-		"--rule.two.rule=\"Host(`two.com`) && Path(`/two`)\"",
+		"--rule.two.rule=\"TokenHost(`two.com`) && Path(`/two`)\"",
 		"--port=8000",
 	})
 	require.Nil(t, err)
@@ -71,7 +71,7 @@ func TestConfigParseArgs(t *testing.T) {
 		},
 		"two": {
 			Action:   "auth",
-			Rule:     "Host(`two.com`) && Path(`/two`)",
+			Rule:     "TokenHost(`two.com`) && Path(`/two`)",
 			Provider: "oidc",
 		},
 	}, c.Rules)
@@ -183,7 +183,7 @@ func TestConfigParseIni(t *testing.T) {
 		},
 		"two": {
 			Action:   "auth",
-			Rule:     "Host(`two.com`) && Path(`/two`)",
+			Rule:     "TokenHost(`two.com`) && Path(`/two`)",
 			Provider: "google",
 		},
 	}, c.Rules)

@@ -201,7 +201,7 @@ func TestRedirectUri(t *testing.T) {
 	r.Header.Add("X-Forwarded-Proto", "http")
 
 	//
-	// No Auth Host
+	// No Auth TokenHost
 	//
 	config, _ = NewConfig([]string{})
 
@@ -258,7 +258,7 @@ func TestAuthMakeCookie(t *testing.T) {
 	assert := assert.New(t)
 	config, _ = NewConfig([]string{})
 	r, _ := http.NewRequest("GET", "http://app.example.com", nil)
-	r.Header.Add("X-Forwarded-Host", "app.example.com")
+	r.Header.Add("X-Forwarded-TokenHost", "app.example.com")
 
 	c := MakeCookie(r, "test@example.com")
 	assert.Equal("_forward_auth", c.Name)
@@ -284,7 +284,7 @@ func TestAuthMakeCSRFCookie(t *testing.T) {
 	assert := assert.New(t)
 	config, _ = NewConfig([]string{})
 	r, _ := http.NewRequest("GET", "http://app.example.com", nil)
-	r.Header.Add("X-Forwarded-Host", "app.example.com")
+	r.Header.Add("X-Forwarded-TokenHost", "app.example.com")
 
 	// No cookie domain or auth url
 	c := MakeCSRFCookie(r, "12345678901234567890123456789012")
@@ -379,7 +379,7 @@ func TestMakeState(t *testing.T) {
 	r.Header.Add("X-Forwarded-Proto", "http")
 
 	// Test with google
-	p := provider.Google{}
+	p := provider.WSO2{}
 	state := MakeState(r, &p, "nonce")
 	assert.Equal("nonce:google:http://example.com/hello", state)
 

@@ -97,3 +97,7 @@ func (o *OIDC) GetUser(token string) (User, error) {
 
 	return user, nil
 }
+
+func (o *OIDC) IsCallbackSupported() bool {
+	return true // TODO KeyCloak also has an option for backend logins
+}

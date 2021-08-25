@@ -1,6 +1,7 @@
 package tfa
 
 import (
+	"fmt"
 	"net/http"
 	"net/url"
 
@@ -34,6 +35,7 @@ func (s *Server) buildRoutes() {
 		if rule.Action == "allow" {
 			s.router.AddRoute(matchRule, 1, s.AllowHandler(name))
 		} else {
+			log.Infof("Adding route %s for provider %s", matchRule, rule.Provider)
 			s.router.AddRoute(matchRule, 1, s.AuthHandler(rule.Provider, name))
 		}
 	}
@@ -57,7 +59,7 @@ func (s *Server) buildRoutes() {
 func (s *Server) RootHandler(w http.ResponseWriter, r *http.Request) {
 	// Modify request
 	r.Method = r.Header.Get("X-Forwarded-Method")
-	r.Host = r.Header.Get("X-Forwarded-Host")
+	r.Host = r.Header.Get("X-Forwarded-TokenHost")
 
 	// Read URI from header if we're acting as forward auth middleware
 	if _, ok := r.Header["X-Forwarded-Uri"]; ok {
@@ -84,39 +86,48 @@ func (s *Server) AuthHandler(providerName, rule string) http.HandlerFunc {
 		// Logging setup
 		logger := s.logger(r, "Auth", rule, "Authenticating request")
 
-		// Get auth cookie
-		c, err := r.Cookie(config.CookieName)
-		if err != nil {
-			s.authRedirect(logger, w, r, p)
-			return
+		if p.IsCallbackSupported() {
+			s.startCallbackFlow(w, r, logger, p, rule)
+		} else {
+			s.startBackendLoginFlow(w, r, logger, p, rule)
 		}
-
-		// Validate cookie
-		email, err := ValidateCookie(r, c)
-		if err != nil {
-			if err.Error() == "Cookie has expired" {
-				logger.Info("Cookie has expired")
-				s.authRedirect(logger, w, r, p)
-			} else {
-				logger.WithField("error", err).Warn("Invalid cookie")
-				http.Error(w, "Not authorized", 401)
-			}
-			return
-		}
-
-		// Validate user
-		valid := ValidateEmail(email, rule)
-		if !valid {
-			logger.WithField("email", email).Warn("Invalid email")
-			http.Error(w, "Not authorized", 401)
-			return
-		}
-
-		// Valid request
-		logger.Debug("Allowing valid request")
-		w.Header().Set("X-Forwarded-User", email)
-		w.WriteHeader(200)
 	}
+}
+
+func (s *Server) startCallbackFlow(w http.ResponseWriter, r *http.Request, logger *logrus.Entry, p provider.Provider, rule string) {
+	// Get auth cookie
+	c, err := r.Cookie(config.CookieName)
+	if err != nil {
+		s.authRedirect(logger, w, r, p)
+		return
+	}
+
+	// Validate cookie
+	email, err := ValidateCookie(r, c)
+	if err != nil {
+		if err.Error() == "Cookie has expired" {
+			logger.Info("Cookie has expired")
+			s.authRedirect(logger, w, r, p)
+		} else {
+			logger.WithField("error", err).Warn("Invalid cookie")
+			http.Error(w, "Not authorized", 401)
+		}
+		return
+	}
+
+	// Validate user
+	valid := ValidateEmail(email, rule)
+	if !valid {
+		logger.WithField("email", email).Warn("Invalid email")
+		http.Error(w, "Not authorized", 401)
+		return
+	}
+
+	// Valid request
+	logger.Debug("Allowing valid request")
+	w.Header().Set("X-Forwarded-User", email)
+	w.WriteHeader(200)
+	return
 }
 
 // AuthCallbackHandler Handles auth callback request
@@ -251,7 +262,7 @@ func (s *Server) logger(r *http.Request, handler, rule, msg string) *logrus.Entr
 		"rule":      rule,
 		"method":    r.Header.Get("X-Forwarded-Method"),
 		"proto":     r.Header.Get("X-Forwarded-Proto"),
-		"host":      r.Header.Get("X-Forwarded-Host"),
+		"host":      r.Header.Get("X-Forwarded-TokenHost"),
 		"uri":       r.Header.Get("X-Forwarded-Uri"),
 		"source_ip": r.Header.Get("X-Forwarded-For"),
 	})
@@ -262,4 +273,17 @@ func (s *Server) logger(r *http.Request, handler, rule, msg string) *logrus.Entr
 	}).Debug(msg)
 
 	return logger
+}
+
+func (s *Server) startBackendLoginFlow(w http.ResponseWriter, r *http.Request, logger *logrus.Entry, p provider.Provider, rule string) {
+	log.Info("Requesting token for rule %s", rule)
+	token, err := p.ExchangeCode("", "")
+	if err != nil {
+		logrus.Fatalf("ExchangeCode failed: %v", err)
+	} else {
+		bearer := fmt.Sprintf("Bearer %s", token)
+		w.Header().Set("Authorization", bearer)
+		w.WriteHeader(200)
+		w.Write([]byte("Here is a string...."))
+	}
 }

@@ -18,10 +18,14 @@ services:
       - "traefik.http.routers.whoami.middlewares=traefik-forward-auth"
 
   traefik-forward-auth:
-    image: thomseddon/traefik-forward-auth:2
+    # image: thomseddon/traefik-forward-auth:2
+    image: traefik-forward-auth:latest
     environment:
-      - PROVIDERS_GOOGLE_CLIENT_ID=your-client-id
-      - PROVIDERS_GOOGLE_CLIENT_SECRET=your-client-secret
+      - DEFAULT_PROVIDER=wso2
+      - PROVIDERS_WSO2_CLIENT_ID=bvfJsN6NlVYxT4Ah_ytuDuX7lLMa
+      - PROVIDERS_WSO2_CLIENT_SECRET=nw9g3XEB89BEuuAsfXyonI6ytika
+      - PROVIDERS_WSO2_GRANT_TYPE=client_credentials # grant_type=client_credentials
+      - PROVIDERS_WSO2_TOKEN_HOST=gw.api.cloud.sphereon.com
       - SECRET=something-random
       # INSECURE_COOKIE is required if not using a https entrypoint
       - INSECURE_COOKIE=true
