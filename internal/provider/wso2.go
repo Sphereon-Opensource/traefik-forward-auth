@@ -1,5 +1,9 @@
 package provider
 
+/**
+This provider was created to access WSO2 API gateway endpoints. For now only backend-login was fully completed ad tested
+*/
+
 import (
 	"encoding/json"
 	"errors"
@@ -80,7 +84,7 @@ func (wso2 *WSO2) ExchangeCode(redirectURI, code string) (string, error) {
 	form := url.Values{}
 	form.Set("grant_type", wso2.GrantType)
 	form.Set("validity_period", "5400")
-	logrus.Infof("Sending auth request to %s", wso2.TokenURL.String())
+	logrus.Debugf("Sending auth request to %s", wso2.TokenURL.String())
 	req, err := http.NewRequest("POST", wso2.TokenURL.String(), strings.NewReader(form.Encode()))
 	if err != nil {
 		return "", err
@@ -93,14 +97,6 @@ func (wso2 *WSO2) ExchangeCode(redirectURI, code string) (string, error) {
 	} else {
 		return "", errors.New("Only grant type client_credentials supported for now.") // TODO
 	}
-
-	/*	if redirectURI != "" {
-			form.Set("redirect_uri", redirectURI)
-		}
-		form.Set("code", code)
-
-	*/
-	//	logrus.WithField("request", req).WithField("form", form.Encode()).Debug("PostForm")
 
 	response, err := http.PostForm(wso2.TokenURL.String(), form)
 	if err != nil {
@@ -122,7 +118,6 @@ func (wso2 *WSO2) ExchangeCode(redirectURI, code string) (string, error) {
 		logrus.Fatalf("Request decode failed: %v", err)
 		return "", err
 	}
-	logrus.Infof("Token: %s", token.Token)
 	return token.Token, nil
 }
 

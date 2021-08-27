@@ -276,7 +276,7 @@ func (s *Server) logger(r *http.Request, handler, rule, msg string) *logrus.Entr
 }
 
 func (s *Server) startBackendLoginFlow(w http.ResponseWriter, r *http.Request, logger *logrus.Entry, p provider.Provider, rule string) {
-	log.Info("Requesting token for rule %s", rule)
+	log.Debug("Requesting token for rule %s", rule)
 	token, err := p.ExchangeCode("", "")
 	if err != nil {
 		logrus.Fatalf("ExchangeCode failed: %v", err)
@@ -284,6 +284,5 @@ func (s *Server) startBackendLoginFlow(w http.ResponseWriter, r *http.Request, l
 		bearer := fmt.Sprintf("Bearer %s", token)
 		w.Header().Set("Authorization", bearer)
 		w.WriteHeader(200)
-		w.Write([]byte("Here is a string...."))
 	}
 }

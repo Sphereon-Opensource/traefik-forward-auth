@@ -5,7 +5,7 @@ services:
     image: traefik:v2.2
     command: --providers.docker
     ports:
-      - "8085:80"
+      - "80:80"
       - "8086:8080"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
@@ -18,15 +18,19 @@ services:
       - "traefik.http.routers.whoami.middlewares=traefik-forward-auth"
 
   traefik-forward-auth:
-    image: thomseddon/traefik-forward-auth:2
+    # image: thomseddon/traefik-forward-auth:2
+    image: traefik-forward-auth:latest
     environment:
-      - PROVIDERS_GOOGLE_CLIENT_ID=your-client-id
-      - PROVIDERS_GOOGLE_CLIENT_SECRET=your-client-secret
+      - DEFAULT_PROVIDER=wso2
+      - PROVIDERS_WSO2_CLIENT_ID=<secret> # set in env_file
+      - PROVIDERS_WSO2_CLIENT_SECRET=<secret>  # set in env_file
+      - PROVIDERS_WSO2_GRANT_TYPE=client_credentials # grant_type=client_credentials
+      - PROVIDERS_WSO2_TOKEN_HOST=gw.api.cloud.sphereon.com
       - SECRET=something-random
       # INSECURE_COOKIE is required if not using a https entrypoint
       - INSECURE_COOKIE=true
       - LOG_LEVEL=debug
     labels:
       - "traefik.http.middlewares.traefik-forward-auth.forwardauth.address=http://traefik-forward-auth:4181"
-      - "traefik.http.middlewares.traefik-forward-auth.forwardauth.authResponseHeaders=X-Forwarded-User"
+      - "traefik.http.middlewares.traefik-forward-auth.forwardauth.authResponseHeaders=Authorization"
       - "traefik.http.services.traefik-forward-auth.loadbalancer.server.port=4181"
