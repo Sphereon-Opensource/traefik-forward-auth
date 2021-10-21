@@ -3,7 +3,7 @@ package provider
 import (
 	"context"
 	"errors"
-	"github.com/sirupsen/logrus"
+
 	"github.com/coreos/go-oidc"
 	"golang.org/x/oauth2"
 )
@@ -32,20 +32,16 @@ func (o *OIDC) Setup() error {
 		return errors.New("providers.oidc.issuer-url, providers.oidc.client-id, providers.oidc.client-secret must be set")
 	}
 
-	logrus.Debugf("Setting up OIDC provider")
-
 	var err error
 	o.ctx = context.Background()
 
 	// Try to initiate provider
-	logrus.Debugf("initiate OIDC provider IssuerURL: %s, context: %v", o.IssuerURL, o.ctx)
 	o.provider, err = oidc.NewProvider(o.ctx, o.IssuerURL)
 	if err != nil {
 		return err
 	}
 
 	// Create oauth2 config
-	logrus.Debugf("Create oauth2 config on endpoint %v", o.provider.Endpoint())
 	o.Config = &oauth2.Config{
 		ClientID:     o.ClientID,
 		ClientSecret: o.ClientSecret,
@@ -56,7 +52,6 @@ func (o *OIDC) Setup() error {
 	}
 
 	// Create OIDC verifier
-	logrus.Debugf("Creating OIDC Verifier")
 	o.verifier = o.provider.Verifier(&oidc.Config{
 		ClientID: o.ClientID,
 	})
