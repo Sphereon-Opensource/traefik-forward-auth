@@ -261,14 +261,14 @@ func (c *Config) Validate() {
 	//log.Infof("Validate - config: %v", c)
 	err := c.setupProvider(c.DefaultProvider)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("setupProvider error: %v", err)
 	}
 
 	// Check rules (validates the rule and the rule provider)
 	for _, rule := range c.Rules {
 		err = rule.Validate(c)
 		if err != nil {
-			log.Fatal(err)
+			log.Fatal("rule.Validate error: %v",err)
 		}
 	}
 }

@@ -26,7 +26,7 @@ func (s *Server) buildRoutes() {
 	var err error
 	s.router, err = rules.NewRouter()
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("Error building routes: %v", err)
 	}
 
 	// Let's build a router
